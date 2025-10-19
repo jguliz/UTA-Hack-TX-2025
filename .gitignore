@@ -1,0 +1,5 @@
+/__pycache__
+/__pycache__
+*.ff1pkl
+/logs
+fastf1_cache/fastf1_http_cache.sqlite

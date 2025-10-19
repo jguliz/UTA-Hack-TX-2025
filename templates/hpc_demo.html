@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>F1 HPC Racing Line Optimizer | HackTX 2025</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Rajdhani:wght@300;400;500;600;700&display=swap');
+
+        * {
+            font-family: 'Rajdhani', sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        .orbitron { font-family: 'Orbitron', monospace; }
+
+        body {
+            background: linear-gradient(135deg, #0a0a0f 0%, #1a0a1f 50%, #0f0a1a 100%);
+            overflow-x: hidden;
+        }
+
+        .glow-red {
+            text-shadow: 0 0 20px rgba(239, 68, 68, 0.8), 0 0 40px rgba(239, 68, 68, 0.6), 0 0 60px rgba(239, 68, 68, 0.4);
+        }
+
+        .glow-green {
+            text-shadow: 0 0 20px rgba(34, 197, 94, 0.9), 0 0 40px rgba(34, 197, 94, 0.7), 0 0 60px rgba(34, 197, 94, 0.5);
+        }
+
+        .glow-blue {
+            text-shadow: 0 0 20px rgba(59, 130, 246, 0.9), 0 0 40px rgba(59, 130, 246, 0.7);
+        }
+
+        .glow-yellow {
+            text-shadow: 0 0 20px rgba(251, 191, 36, 0.9), 0 0 40px rgba(251, 191, 36, 0.7);
+        }
+
+        .pulse-border {
+            animation: pulse-border 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse-border {
+            0%, 100% {
+                border-color: rgba(239, 68, 68, 0.3);
+                box-shadow: 0 0 20px rgba(239, 68, 68, 0.2);
+            }
+            50% {
+                border-color: rgba(239, 68, 68, 0.8);
+                box-shadow: 0 0 40px rgba(239, 68, 68, 0.5);
+            }
+        }
+
+        .pulse-glow {
+            animation: pulse-glow 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse-glow {
+            0%, 100% {
+                box-shadow: 0 0 30px rgba(34, 197, 94, 0.4);
+            }
+            50% {
+                box-shadow: 0 0 60px rgba(34, 197, 94, 0.8);
+            }
+        }
+
+        .slide-in {
+            animation: slide-in 0.8s ease-out;
+        }
+
+        @keyframes slide-in {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .fade-in {
+            animation: fade-in 1s ease-out;
+        }
+
+        @keyframes fade-in {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        canvas {
+            background: radial-gradient(circle at 30% 30%, rgba(59, 130, 246, 0.15) 0%, transparent 50%),
+                        radial-gradient(circle at 70% 70%, rgba(239, 68, 68, 0.15) 0%, transparent 50%),
+                        linear-gradient(135deg, #0a0a15 0%, #151520 100%);
+            border-radius: 16px;
+        }
+
+        .glass {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .glass-dark {
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .gradient-text {
+            background: linear-gradient(135deg, #3b82f6 0%, #ef4444 50%, #22c55e 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .speed-bar {
+            transition: width 0.3s ease-out;
+        }
+
+        .track-line {
+            stroke-dasharray: 3000;
+            stroke-dashoffset: 3000;
+            animation: draw-line 3s ease-out forwards;
+        }
+
+        @keyframes draw-line {
+            to {
+                stroke-dashoffset: 0;
+            }
+        }
+
+        .shimmer {
+            background: linear-gradient(90deg,
+                rgba(255,255,255,0) 0%,
+                rgba(255,255,255,0.1) 50%,
+                rgba(255,255,255,0) 100%);
+            background-size: 200% 100%;
+            animation: shimmer 2s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+    </style>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'f1-red': '#ef4444',
+                        'f1-green': '#22c55e',
+                        'f1-blue': '#3b82f6',
+                        'f1-yellow': '#fbbf24',
+                        'ferrari': '#E80020',
+                        'mercedes': '#27F4D2',
+                        'redbull': '#3671C6',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="text-white">
+    <div id="root"></div>
+
+    <script type="text/babel">{% raw %}
+        const { useState, useEffect, useRef } = React;
+
+        // Real Monaco Track Visualization with FastF1 Data
+        function MonacoTrack({ telemetryData, showHPC }) {
+            const canvasRef = useRef(null);
+            const [progress, setProgress] = useState(0);
+
+            useEffect(() => {
+                if (!telemetryData || !canvasRef.current) return;
+
+                const canvas = canvasRef.current;
+                const ctx = canvas.getContext('2d');
+                const width = canvas.width;
+                const height = canvas.height;
+
+                // Extract real track coordinates from Leclerc's lap
+                const telemetry = telemetryData.telemetry || [];
+                if (telemetry.length === 0) return;
+
+                // Find bounds
+                const xCoords = telemetry.map(p => p.x);
+                const yCoords = telemetry.map(p => p.y);
+                const minX = Math.min(...xCoords);
+                const maxX = Math.max(...xCoords);
+                const minY = Math.min(...yCoords);
+                const maxY = Math.max(...yCoords);
+
+                // Scale to canvas
+                const padding = 60;
+                const scaleX = (width - 2 * padding) / (maxX - minX);
+                const scaleY = (height - 2 * padding) / (maxY - minY);
+                const scale = Math.min(scaleX, scaleY);
+
+                const centerX = width / 2;
+                const centerY = height / 2;
+                const trackCenterX = (minX + maxX) / 2;
+                const trackCenterY = (minY + maxY) / 2;
+
+                const toCanvasX = (x) => centerX + (x - trackCenterX) * scale;
+                const toCanvasY = (y) => centerY + (y - trackCenterY) * scale;
+
+                let animationFrame;
+                let currentProgress = 0;
+
+                function animate() {
+                    ctx.clearRect(0, 0, width, height);
+
+                    // Draw track surface
+                    ctx.strokeStyle = '#1a1a2a';
+                    ctx.lineWidth = 40;
+                    ctx.lineCap = 'round';
+                    ctx.lineJoin = 'round';
+                    ctx.beginPath();
+                    telemetry.forEach((point, i) => {
+                        const x = toCanvasX(point.x);
+                        const y = toCanvasY(point.y);
+                        if (i === 0) ctx.moveTo(x, y);
+                        else ctx.lineTo(x, y);
+                    });
+                    ctx.stroke();
+
+                    // Draw racing line (gradient based on speed)
+                    telemetry.forEach((point, i) => {
+                        if (i === 0 || i > currentProgress) return;
+
+                        const nextPoint = telemetry[i];
+                        const x1 = toCanvasX(telemetry[i-1].x);
+                        const y1 = toCanvasY(telemetry[i-1].y);
+                        const x2 = toCanvasX(nextPoint.x);
+                        const y2 = toCanvasY(nextPoint.y);
+
+                        // Color by speed
+                        const speed = point.speed;
+                        const speedPercent = speed / 300; // Max ~280 km/h
+                        const r = Math.floor(239 * (1 - speedPercent) + 34 * speedPercent);
+                        const g = Math.floor(68 * (1 - speedPercent) + 197 * speedPercent);
+                        const b = Math.floor(68 * (1 - speedPercent) + 94 * speedPercent);
+
+                        ctx.strokeStyle = `rgba(${r}, ${g}, ${b}, 0.8)`;
+                        ctx.lineWidth = 6;
+                        ctx.beginPath();
+                        ctx.moveTo(x1, y1);
+                        ctx.lineTo(x2, y2);
+                        ctx.stroke();
+                    });
+
+                    // Draw current position marker
+                    if (currentProgress < telemetry.length) {
+                        const current = telemetry[Math.floor(currentProgress)];
+                        const x = toCanvasX(current.x);
+                        const y = toCanvasY(current.y);
+
+                        // Outer glow
+                        ctx.shadowColor = '#fbbf24';
+                        ctx.shadowBlur = 30;
+                        ctx.fillStyle = '#fbbf24';
+                        ctx.beginPath();
+                        ctx.arc(x, y, 12, 0, Math.PI * 2);
+                        ctx.fill();
+
+                        // Inner core
+                        ctx.shadowBlur = 0;
+                        ctx.fillStyle = '#ffffff';
+                        ctx.beginPath();
+                        ctx.arc(x, y, 6, 0, Math.PI * 2);
+                        ctx.fill();
+
+                        // Speed indicator
+                        ctx.fillStyle = '#ffffff';
+                        ctx.font = 'bold 14px Orbitron';
+                        ctx.fillText(`${Math.round(current.speed)} km/h`, x + 20, y - 10);
+                    }
+
+                    // Animate progress
+                    currentProgress += 0.5;
+                    if (currentProgress >= telemetry.length) {
+                        currentProgress = 0;
+                    }
+                    setProgress(Math.floor(currentProgress / telemetry.length * 100));
+
+                    animationFrame = requestAnimationFrame(animate);
+                }
+
+                animate();
+
+                return () => {
+                    if (animationFrame) cancelAnimationFrame(animationFrame);
+                };
+            }, [telemetryData, showHPC]);
+
+            return (
+                <div className="relative">
+                    <canvas
+                        ref={canvasRef}
+                        width={1200}
+                        height={800}
+                        className="w-full h-auto rounded-2xl shadow-2xl"
+                    />
+                    <div className="absolute top-4 right-4 glass px-4 py-2 rounded-lg">
+                        <span className="text-sm orbitron text-gray-300">LAP PROGRESS: {progress}%</span>
+                    </div>
+                </div>
+            );
+        }
+
+        // Telemetry Data Panel
+        function TelemetryPanel({ telemetryData, currentIndex }) {
+            if (!telemetryData || !telemetryData.telemetry) return null;
+
+            const point = telemetryData.telemetry[currentIndex % telemetryData.telemetry.length];
+
+            return (
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div className="glass-dark p-4 rounded-xl">
+                        <div className="text-gray-400 text-sm mb-1">SPEED</div>
+                        <div className="text-3xl font-bold glow-yellow orbitron">{Math.round(point.speed)}</div>
+                        <div className="text-gray-500 text-xs">km/h</div>
+                    </div>
+                    <div className="glass-dark p-4 rounded-xl">
+                        <div className="text-gray-400 text-sm mb-1">THROTTLE</div>
+                        <div className="text-3xl font-bold glow-green orbitron">{Math.round(point.throttle)}%</div>
+                        <div className="w-full bg-gray-700 rounded-full h-2 mt-2">
+                            <div className="bg-green-500 h-2 rounded-full speed-bar" style={{width: `${point.throttle}%`}}></div>
+                        </div>
+                    </div>
+                    <div className="glass-dark p-4 rounded-xl">
+                        <div className="text-gray-400 text-sm mb-1">BRAKE</div>
+                        <div className="text-3xl font-bold glow-red orbitron">{Math.round(point.brake)}%</div>
+                        <div className="w-full bg-gray-700 rounded-full h-2 mt-2">
+                            <div className="bg-red-500 h-2 rounded-full speed-bar" style={{width: `${point.brake}%`}}></div>
+                        </div>
+                    </div>
+                    <div className="glass-dark p-4 rounded-xl">
+                        <div className="text-gray-400 text-sm mb-1">GEAR / RPM</div>
+                        <div className="text-3xl font-bold glow-blue orbitron">{point.gear}</div>
+                        <div className="text-gray-500 text-xs">{Math.round(point.rpm)} RPM</div>
+                    </div>
+                </div>
+            );
+        }
+
+        // Main HPC Demo Component
+        function HPCDemo() {
+            const [leclercData, setLeclercData] = useState(null);
+            const [aiData, setAIData] = useState(null);
+            const [hpcStats, setHPCStats] = useState(null);
+            const [allDrivers, setAllDrivers] = useState([]);
+            const [loading, setLoading] = useState(true);
+            const [currentTelemetryIndex, setCurrentTelemetryIndex] = useState(0);
+            const [showHPC, setShowHPC] = useState(false);
+
+            useEffect(() => {
+                // Fetch all data
+                Promise.all([
+                    fetch('/api/telemetry/leclerc').then(r => r.json()),
+                    fetch('/api/telemetry/ai_optimal').then(r => r.json()),
+                    fetch('/api/hpc/scenarios').then(r => r.json()),
+                    fetch('/api/telemetry/all_drivers').then(r => r.json())
+                ]).then(([leclerc, ai, hpc, drivers]) => {
+                    setLeclercData(leclerc);
+                    setAIData(ai);
+                    setHPCStats(hpc);
+                    setAllDrivers(drivers.drivers || []);
+                    setLoading(false);
+                }).catch(err => {
+                    console.error('Error loading data:', err);
+                    setLoading(false);
+                });
+
+                // Animate telemetry index
+                const interval = setInterval(() => {
+                    setCurrentTelemetryIndex(prev => prev + 1);
+                }, 100);
+
+                return () => clearInterval(interval);
+            }, []);
+
+            if (loading) {
+                return (
+                    <div className="min-h-screen flex items-center justify-center">
+                        <div className="text-center">
+                            <div className="text-6xl mb-4 orbitron glow-blue">LOADING</div>
+                            <div className="shimmer h-2 w-64 mx-auto rounded-full bg-gray-700"></div>
+                        </div>
+                    </div>
+                );
+            }
+
+            return (
+                <div className="min-h-screen p-6 md:p-12">
+                    {/* Header */}
+                    <div className="mb-12 text-center slide-in">
+                        <h1 className="text-6xl md:text-8xl font-black mb-4 orbitron gradient-text">
+                            F1 HPC RACING
+                        </h1>
+                        <p className="text-xl md:text-2xl text-gray-400 mb-2">
+                            Real-Time Line Optimization • Monaco Grand Prix 2024
+                        </p>
+                        <div className="flex items-center justify-center gap-4 text-sm text-gray-500">
+                            <span>POWERED BY FASTF1 API</span>
+                            <span>•</span>
+                            <span>HACKTX 2025</span>
+                        </div>
+                    </div>
+
+                    {/* Lap Time Comparison */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12 slide-in">
+                        {/* Leclerc's Actual Lap */}
+                        <div className="glass-dark p-8 rounded-2xl border-2 border-ferrari/30 pulse-border">
+                            <div className="flex items-center gap-3 mb-4">
+                                <div className="w-12 h-12 rounded-full" style={{backgroundColor: leclercData?.team_color || '#E80020'}}></div>
+                                <div>
+                                    <div className="text-gray-400 text-sm">CHARLES LECLERC</div>
+                                    <div className="text-lg font-bold">{leclercData?.team}</div>
+                                </div>
+                            </div>
+                            <div className="mb-2 text-gray-400">ACTUAL QUALIFYING LAP</div>
+                            <div className="text-7xl font-black orbitron glow-red mb-2">
+                                {leclercData?.lap_time?.toFixed(3)}s
+                            </div>
+                            <div className="text-sm text-gray-500">Monaco 2024 • {leclercData?.telemetry_points} data points</div>
+                        </div>
+
+                        {/* HPC Optimized */}
+                        <div className="glass-dark p-8 rounded-2xl border-2 border-green-500/50 pulse-glow">
+                            <div className="flex items-center gap-3 mb-4">
+                                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-green-500 to-blue-500 flex items-center justify-center">
+                                    <span className="text-2xl">🤖</span>
+                                </div>
+                                <div>
+                                    <div className="text-gray-400 text-sm">AI AGENT</div>
+                                    <div className="text-lg font-bold">HPC Racing Intelligence</div>
+                                </div>
+                            </div>
+                            <div className="mb-2 text-gray-400">HPC-OPTIMIZED LAP</div>
+                            <div className="text-7xl font-black orbitron glow-green mb-2">
+                                {aiData?.lap_time?.toFixed(3)}s
+                            </div>
+                            <div className="text-sm text-green-400">✓ {(leclercData?.lap_time - aiData?.lap_time)?.toFixed(3)}s faster • {hpcStats?.total_scenarios?.toLocaleString()} scenarios</div>
+                        </div>
+                    </div>
+
+                    {/* Monaco Track Visualization */}
+                    <div className="mb-12 slide-in">
+                        <div className="glass-dark p-6 rounded-2xl">
+                            <div className="flex items-center justify-between mb-6">
+                                <div>
+                                    <h2 className="text-3xl font-bold orbitron mb-2">MONACO CIRCUIT</h2>
+                                    <p className="text-gray-400">Real telemetry data • Live racing line visualization</p>
+                                </div>
+                                <button
+                                    onClick={() => setShowHPC(!showHPC)}
+                                    className={`px-6 py-3 rounded-lg font-bold orbitron transition-all ${
+                                        showHPC
+                                            ? 'bg-green-500 text-black glow-green'
+                                            : 'bg-red-500 text-white glow-red'
+                                    }`}
+                                >
+                                    {showHPC ? 'SHOWING HPC LINE' : 'SHOWING LECLERC LAP'}
+                                </button>
+                            </div>
+                            <MonacoTrack
+                                telemetryData={showHPC ? aiData : leclercData}
+                                showHPC={showHPC}
+                            />
+                        </div>
+                    </div>
+
+                    {/* Real-Time Telemetry */}
+                    <div className="mb-12 slide-in">
+                        <h2 className="text-3xl font-bold orbitron mb-6">REAL-TIME TELEMETRY</h2>
+                        <TelemetryPanel
+                            telemetryData={showHPC ? aiData : leclercData}
+                            currentIndex={currentTelemetryIndex}
+                        />
+                    </div>
+
+                    {/* HPC Statistics */}
+                    {hpcStats && (
+                        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12 slide-in">
+                            <div className="glass-dark p-6 rounded-2xl text-center">
+                                <div className="text-5xl font-black orbitron glow-blue mb-2">
+                                    {hpcStats.total_scenarios?.toLocaleString()}
+                                </div>
+                                <div className="text-gray-400">PRE-COMPUTED SCENARIOS</div>
+                            </div>
+                            <div className="glass-dark p-6 rounded-2xl text-center">
+                                <div className="text-5xl font-black orbitron glow-green mb-2">
+                                    {hpcStats.avg_lookup_time_ms}ms
+                                </div>
+                                <div className="text-gray-400">AVERAGE LOOKUP TIME</div>
+                            </div>
+                            <div className="glass-dark p-6 rounded-2xl text-center">
+                                <div className="text-5xl font-black orbitron glow-yellow mb-2">
+                                    {hpcStats.speedup_factor}x
+                                </div>
+                                <div className="text-gray-400">FASTER THAN REAL-TIME</div>
+                            </div>
+                            <div className="glass-dark p-6 rounded-2xl text-center">
+                                <div className="text-5xl font-black orbitron glow-red mb-2">
+                                    {hpcStats.database_size_mb}MB
+                                </div>
+                                <div className="text-gray-400">HPC DATABASE SIZE</div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* All Drivers Leaderboard */}
+                    <div className="slide-in">
+                        <h2 className="text-3xl font-bold orbitron mb-6">2024 MONACO QUALIFYING</h2>
+                        <div className="glass-dark p-6 rounded-2xl">
+                            <div className="grid gap-3">
+                                {allDrivers.slice(0, 10).map((driver, index) => (
+                                    <div
+                                        key={driver.driver_abbr}
+                                        className="flex items-center justify-between p-4 rounded-lg bg-black/30 hover:bg-black/50 transition-all"
+                                    >
+                                        <div className="flex items-center gap-4">
+                                            <div className="text-2xl font-bold orbitron text-gray-500 w-8">
+                                                {index + 1}
+                                            </div>
+                                            <div
+                                                className="w-1 h-12 rounded-full"
+                                                style={{backgroundColor: driver.team_color}}
+                                            ></div>
+                                            <div>
+                                                <div className="font-bold text-lg">{driver.driver}</div>
+                                                <div className="text-sm text-gray-400">{driver.team}</div>
+                                            </div>
+                                        </div>
+                                        <div className="text-right">
+                                            <div className="text-2xl font-bold orbitron">
+                                                {driver.lap_time?.toFixed(3)}s
+                                            </div>
+                                            <div className="text-xs text-gray-500">
+                                                {driver.telemetry_points} points
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Footer */}
+                    <div className="mt-12 text-center text-gray-500 text-sm fade-in">
+                        <p>Built for HackTX 2025 • Real FastF1 telemetry data • Monaco Grand Prix 2024</p>
+                        <p className="mt-2">High-Performance Computing for Real-Time F1 Strategy</p>
+                    </div>
+                </div>
+            );
+        }
+
+        // Render
+        ReactDOM.render(<HPCDemo />, document.getElementById('root'));
+    {% endraw %}</script>
+</body>
+</html>
