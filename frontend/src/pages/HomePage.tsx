@@ -51,7 +51,7 @@ export default function HomePage() {
     },
     {
       title: 'HPC Statistics',
-      description: '53,847 scenarios • <12ms lookup • 99.97% coverage',
+      description: '10,000 scenarios • 11.7ms lookup • 500x speedup',
       path: '/hpc-stats',
       gradient: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
     },
@@ -141,6 +141,62 @@ export default function HomePage() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.4 }}
+        className="glass"
+        style={{ padding: '2rem', borderRadius: 'var(--radius-lg)', marginBottom: '4rem' }}
+      >
+        <h2 style={{ fontSize: '1.5rem', marginBottom: '1.5rem' }}>The Technology</h2>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '2rem', marginBottom: '2rem' }}>
+          <div>
+            <h3 style={{ fontSize: '1.125rem', marginBottom: '1rem', color: 'rgba(220, 38, 38, 0.9)' }}>
+              Machine Learning
+            </h3>
+            <p style={{ fontSize: '0.875rem', color: 'var(--text-tertiary)', lineHeight: '1.6', marginBottom: '1rem' }}>
+              <strong style={{ color: 'var(--text-secondary)' }}>PPO (Proximal Policy Optimization)</strong> - State-of-the-art reinforcement learning
+            </p>
+            <ul style={{ listStyle: 'none', padding: 0, fontSize: '0.875rem', color: 'var(--text-muted)' }}>
+              <li style={{ marginBottom: '0.5rem' }}>• Actor-Critic Architecture</li>
+              <li style={{ marginBottom: '0.5rem' }}>• 2,000 training episodes</li>
+              <li style={{ marginBottom: '0.5rem' }}>• 12-dim state space</li>
+              <li>• Continuous action control</li>
+            </ul>
+          </div>
+
+          <div>
+            <h3 style={{ fontSize: '1.125rem', marginBottom: '1rem', color: 'rgba(220, 38, 38, 0.9)' }}>
+              Data Sources
+            </h3>
+            <p style={{ fontSize: '0.875rem', color: 'var(--text-tertiary)', lineHeight: '1.6', marginBottom: '1rem' }}>
+              <strong style={{ color: 'var(--text-secondary)' }}>Real F1 Telemetry</strong> via FastF1 API
+            </p>
+            <ul style={{ listStyle: 'none', padding: 0, fontSize: '0.875rem', color: 'var(--text-muted)' }}>
+              <li style={{ marginBottom: '0.5rem' }}>• 2024 Monaco Grand Prix</li>
+              <li style={{ marginBottom: '0.5rem' }}>• 20 drivers × 539 points</li>
+              <li style={{ marginBottom: '0.5rem' }}>• 7.7 Hz sample rate</li>
+              <li>• Official FIA data</li>
+            </ul>
+          </div>
+
+          <div>
+            <h3 style={{ fontSize: '1.125rem', marginBottom: '1rem', color: 'rgba(220, 38, 38, 0.9)' }}>
+              Physics Model
+            </h3>
+            <p style={{ fontSize: '0.875rem', color: 'var(--text-tertiary)', lineHeight: '1.6', marginBottom: '1rem' }}>
+              <strong style={{ color: 'var(--text-secondary)' }}>Realistic F1 Car</strong> simulation
+            </p>
+            <ul style={{ listStyle: 'none', padding: 0, fontSize: '0.875rem', color: 'var(--text-muted)' }}>
+              <li style={{ marginBottom: '0.5rem' }}>• 798 kg mass</li>
+              <li style={{ marginBottom: '0.5rem' }}>• 950 HP power</li>
+              <li style={{ marginBottom: '0.5rem' }}>• Tire compounds (S/M/H)</li>
+              <li>• Downforce & drag</li>
+            </ul>
+          </div>
+        </div>
+      </motion.div>
+
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.5 }}
         style={{ marginBottom: '4rem' }}
       >
         <h2 style={{ fontSize: '2rem', marginBottom: '2rem' }}>Demo Sections</h2>
@@ -150,7 +206,7 @@ export default function HomePage() {
               key={section.path}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.5 + index * 0.1 }}
+              transition={{ delay: 0.6 + index * 0.1 }}
               className="glass hover-lift"
               onClick={() => navigate(section.path)}
               style={{
