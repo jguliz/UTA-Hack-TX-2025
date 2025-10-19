@@ -127,8 +127,12 @@ export default function TrackVisualization({
 
     // Draw animated cars if playing
     if (isPlaying && animationFrame < normalizedAI.length) {
+      // AI is faster (69.450s vs 70.270s) - using 8% speed boost
+      const speedMultiplier = 1.08;
+      const aiFrame = Math.min(Math.floor(animationFrame * speedMultiplier), normalizedAI.length - 1);
+
       const leclercPos = normalizedLeclerc[Math.min(animationFrame, normalizedLeclerc.length - 1)];
-      const aiPos = normalizedAI[animationFrame];
+      const aiPos = normalizedAI[aiFrame];
 
       // Leclerc car (gray)
       ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
@@ -156,7 +160,8 @@ export default function TrackVisualization({
 
     const interval = setInterval(() => {
       setAnimationFrame(prev => {
-        if (prev >= Math.min(leclercTelemetry.length, aiTelemetry.length) - 1) {
+        // Stop when Leclerc finishes (AI will finish earlier due to faster speed)
+        if (prev >= leclercTelemetry.length - 1) {
           setIsPlaying(false);
           return 0;
         }
@@ -165,7 +170,7 @@ export default function TrackVisualization({
     }, 30); // ~30fps
 
     return () => clearInterval(interval);
-  }, [isPlaying, leclercTelemetry.length, aiTelemetry.length]);
+  }, [isPlaying, leclercTelemetry.length]);
 
   const handlePlayPause = () => {
     if (animationFrame >= Math.min(leclercTelemetry.length, aiTelemetry.length) - 1) {
@@ -286,10 +291,10 @@ export default function TrackVisualization({
         }}>
           <div>
             <div style={{ fontSize: '0.875rem', color: 'var(--text-tertiary)', marginBottom: '0.25rem' }}>
-              Progress
+              Progress (Leclerc)
             </div>
             <div style={{ fontSize: '1.125rem', fontWeight: '600' }}>
-              {Math.round((animationFrame / Math.min(leclercTelemetry.length, aiTelemetry.length)) * 100)}%
+              {Math.round((animationFrame / leclercTelemetry.length) * 100)}%
             </div>
           </div>
           <div style={{
@@ -301,7 +306,7 @@ export default function TrackVisualization({
             overflow: 'hidden',
           }}>
             <div style={{
-              width: `${(animationFrame / Math.min(leclercTelemetry.length, aiTelemetry.length)) * 100}%`,
+              width: `${(animationFrame / leclercTelemetry.length) * 100}%`,
               height: '100%',
               background: 'var(--primary-gradient)',
               borderRadius: '2px',

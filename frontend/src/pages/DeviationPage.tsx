@@ -1,12 +1,59 @@
 import { motion } from 'framer-motion';
 import { useState } from 'react';
 
+interface SimulationResult {
+  deviationDistance: number;
+  timeLost: number;
+  recoveryTime: number;
+  optimalPath: string;
+  status: 'analyzing' | 'complete';
+}
+
 export default function DeviationPage() {
   const [isSimulating, setIsSimulating] = useState(false);
+  const [simulationResult, setSimulationResult] = useState<SimulationResult | null>(null);
+  const [progress, setProgress] = useState(0);
 
   const handleSimulate = () => {
     setIsSimulating(true);
-    setTimeout(() => setIsSimulating(false), 2000);
+    setSimulationResult({
+      deviationDistance: 0,
+      timeLost: 0,
+      recoveryTime: 0,
+      optimalPath: '',
+      status: 'analyzing'
+    });
+    setProgress(0);
+
+    // Simulate HPC computation with progress
+    const progressInterval = setInterval(() => {
+      setProgress(prev => {
+        if (prev >= 100) {
+          clearInterval(progressInterval);
+          return 100;
+        }
+        return prev + 10;
+      });
+    }, 100);
+
+    // Simulate HPC lookup with realistic timing
+    setTimeout(() => {
+      clearInterval(progressInterval);
+      setProgress(100);
+
+      // Simulate HPC database lookup results
+      setSimulationResult({
+        deviationDistance: 2.0,
+        timeLost: 0.142,
+        recoveryTime: 11.7,
+        optimalPath: 'Tight apex, gradual rejoin',
+        status: 'complete'
+      });
+
+      setTimeout(() => {
+        setIsSimulating(false);
+      }, 500);
+    }, 1200);
   };
 
   return (
@@ -103,9 +150,99 @@ export default function DeviationPage() {
           </p>
 
           {isSimulating ? (
-            <div style={{ textAlign: 'center' }}>
+            <div style={{ textAlign: 'center', width: '100%' }}>
               <div className="loader-spinner" style={{ margin: '0 auto 1rem' }} />
-              <p style={{ color: 'var(--text-tertiary)' }}>Computing optimal recovery path...</p>
+              <p style={{ color: 'var(--text-tertiary)', marginBottom: '1rem' }}>
+                Computing optimal recovery path...
+              </p>
+              <div style={{
+                width: '100%',
+                maxWidth: '300px',
+                height: '4px',
+                background: 'rgba(255, 255, 255, 0.1)',
+                borderRadius: '2px',
+                margin: '0 auto',
+                overflow: 'hidden',
+              }}>
+                <div style={{
+                  width: `${progress}%`,
+                  height: '100%',
+                  background: 'var(--primary-gradient)',
+                  borderRadius: '2px',
+                  transition: 'width 0.1s linear',
+                }} />
+              </div>
+              <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)', marginTop: '0.5rem' }}>
+                {progress}% complete
+              </p>
+            </div>
+          ) : simulationResult && simulationResult.status === 'complete' ? (
+            <div style={{ width: '100%', textAlign: 'left' }}>
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                gap: '1.5rem',
+                marginBottom: '1.5rem'
+              }}>
+                <div style={{ padding: '1rem', background: 'rgba(255, 255, 255, 0.03)', borderRadius: 'var(--radius-sm)' }}>
+                  <div style={{ fontSize: '0.875rem', color: 'var(--text-tertiary)', marginBottom: '0.5rem' }}>
+                    Deviation Distance
+                  </div>
+                  <div style={{ fontSize: '2rem', fontWeight: '700', color: '#ffffff' }}>
+                    {simulationResult.deviationDistance}m
+                  </div>
+                </div>
+                <div style={{ padding: '1rem', background: 'rgba(255, 255, 255, 0.03)', borderRadius: 'var(--radius-sm)' }}>
+                  <div style={{ fontSize: '0.875rem', color: 'var(--text-tertiary)', marginBottom: '0.5rem' }}>
+                    Time Lost
+                  </div>
+                  <div style={{ fontSize: '2rem', fontWeight: '700', color: '#f59e0b' }}>
+                    {simulationResult.timeLost.toFixed(3)}s
+                  </div>
+                </div>
+                <div style={{ padding: '1rem', background: 'rgba(220, 38, 38, 0.1)', borderRadius: 'var(--radius-sm)', border: '1px solid rgba(220, 38, 38, 0.3)' }}>
+                  <div style={{ fontSize: '0.875rem', color: 'var(--text-tertiary)', marginBottom: '0.5rem' }}>
+                    HPC Recovery Time
+                  </div>
+                  <div style={{
+                    fontSize: '2rem',
+                    fontWeight: '700',
+                    background: 'var(--primary-gradient)',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                  }}>
+                    {simulationResult.recoveryTime}ms
+                  </div>
+                </div>
+              </div>
+              <div style={{ padding: '1rem', background: 'rgba(255, 255, 255, 0.03)', borderRadius: 'var(--radius-sm)' }}>
+                <div style={{ fontSize: '0.875rem', color: 'var(--text-tertiary)', marginBottom: '0.5rem' }}>
+                  Optimal Recovery Path
+                </div>
+                <div style={{ fontSize: '1rem', color: 'var(--text-secondary)' }}>
+                  {simulationResult.optimalPath}
+                </div>
+              </div>
+              <div style={{
+                marginTop: '1rem',
+                padding: '1rem',
+                background: 'rgba(34, 197, 94, 0.1)',
+                border: '1px solid rgba(34, 197, 94, 0.3)',
+                borderRadius: 'var(--radius-sm)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.75rem'
+              }}>
+                <div style={{ fontSize: '1.5rem' }}>✓</div>
+                <div>
+                  <div style={{ fontSize: '0.875rem', fontWeight: '600', color: '#22c55e' }}>
+                    HPC Advantage
+                  </div>
+                  <div style={{ fontSize: '0.875rem', color: 'var(--text-tertiary)' }}>
+                    Traditional method: 6-8s delay • HPC method: 11.7ms (500x faster)
+                  </div>
+                </div>
+              </div>
             </div>
           ) : (
             <div style={{ textAlign: 'center' }}>

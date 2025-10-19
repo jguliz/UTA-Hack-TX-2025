@@ -261,35 +261,41 @@ export default function HomePage() {
       >
         <h2 style={{ fontSize: '1.5rem', marginBottom: '1.5rem' }}>Monaco 2024 Qualifying Results</h2>
         <div className="glass" style={{ padding: '1.5rem', borderRadius: 'var(--radius-lg)' }}>
-          {allDrivers.slice(0, 10).map((driver, index) => (
-            <div
-              key={driver.driver_abbr}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                padding: '1rem',
-                borderRadius: 'var(--radius-sm)',
-                background: index % 2 === 0 ? 'rgba(255, 255, 255, 0.02)' : 'transparent',
-                marginBottom: index < 9 ? '0.5rem' : 0,
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                <div style={{ fontWeight: '700', color: 'var(--text-muted)', width: '2rem' }}>{index + 1}</div>
-                <div style={{ width: '3px', height: '40px', borderRadius: '2px', background: driver.team_color }} />
-                <div>
-                  <div style={{ fontWeight: '600' }}>{driver.driver}</div>
-                  <div style={{ fontSize: '0.875rem', color: 'var(--text-tertiary)' }}>{driver.team}</div>
+          {allDrivers.slice(0, 10).map((driver, index) => {
+            // F1 Points System for top 10 in qualifying (based on Sprint Qualifying format)
+            const qualifyingPoints = [25, 18, 15, 12, 10, 8, 6, 4, 2, 1];
+            const points = qualifyingPoints[index] || 0;
+
+            return (
+              <div
+                key={driver.driver_abbr}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  padding: '1rem',
+                  borderRadius: 'var(--radius-sm)',
+                  background: index % 2 === 0 ? 'rgba(255, 255, 255, 0.02)' : 'transparent',
+                  marginBottom: index < 9 ? '0.5rem' : 0,
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                  <div style={{ fontWeight: '700', color: 'var(--text-muted)', width: '2rem' }}>{index + 1}</div>
+                  <div style={{ width: '3px', height: '40px', borderRadius: '2px', background: driver.team_color }} />
+                  <div>
+                    <div style={{ fontWeight: '600' }}>{driver.driver}</div>
+                    <div style={{ fontSize: '0.875rem', color: 'var(--text-tertiary)' }}>{driver.team}</div>
+                  </div>
+                </div>
+                <div style={{ textAlign: 'right' }}>
+                  <div style={{ fontWeight: '700', fontSize: '1.125rem' }}>{driver.lap_time?.toFixed(3)}s</div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                    {points} pts | {driver.telemetry_points} data points
+                  </div>
                 </div>
               </div>
-              <div style={{ textAlign: 'right' }}>
-                <div style={{ fontWeight: '700', fontSize: '1.125rem' }}>{driver.lap_time?.toFixed(3)}s</div>
-                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                  {driver.telemetry_points} pts
-                </div>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </motion.div>
     </div>

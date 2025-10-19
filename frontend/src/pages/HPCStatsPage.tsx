@@ -29,7 +29,7 @@ export default function HPCStatsPage() {
     {
       title: 'Pre-computed Scenarios',
       value: stats?.total_scenarios.toLocaleString() || '0',
-      description: '53,847 racing scenarios analyzed',
+      description: 'Scalable to 1M+ scenarios with full HPC deployment',
       gradient: 'linear-gradient(135deg, #dc2626 0%, #991b1b 100%)',
     },
     {
